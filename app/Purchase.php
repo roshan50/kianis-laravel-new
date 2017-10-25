@@ -9,7 +9,7 @@ use App\Member;
 class Purchase extends Model
 {
     function cheques(){
-        return $this->basMany(Cheque::class);
+        return $this->hasMany(Cheque::class);
     }
 
     function member(){
@@ -21,7 +21,7 @@ class Purchase extends Model
         return Member::find($this->mediator_id);
     }
 
-    public function findMediatingIDs($member_id)
+    public static function findMediatingIDs($member_id)
     {
          return static::where('mediator_id', '=', $member_id)->pluck('member_id');
     }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cheque extends Model
 {
-    function purchace(){
+    function purchase(){
         return static::belongsTo(Purchase::class);
     }
 }
