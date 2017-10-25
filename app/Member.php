@@ -37,4 +37,9 @@ class Member extends Model
         return static::whereIn('id', $user_ids)->get();
     }
 
+    public static function grade($id){
+        $members = static::select('score', 'id')->orderBy('score','dsce')->get();
+        return $members->pluck('id')->search($id);
+    }
+
 }
