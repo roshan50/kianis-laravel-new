@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "5eba86da256ddeb8084c32d3d10e18d3",
+    "content-hash": "6da3f7e6a08f4871fc840b20efd69fe6",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -402,6 +402,48 @@
                 }
             ],
             "time": "2015-04-20T18:58:01+00:00"
+        },
+        {
+            "name": "josh/faker",
+            "version": "0.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/iamalirezaj/faker.git",
+                "reference": "aa0ed1244696c3bb711b1b5366e3ad76ebcc7034"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/iamalirezaj/faker/zipball/aa0ed1244696c3bb711b1b5366e3ad76ebcc7034",
+                "reference": "aa0ed1244696c3bb711b1b5366e3ad76ebcc7034",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^5.6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Josh\\Faker\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alireza Josheghani",
+                    "email": "josheghani.dev@gmail.com"
+                }
+            ],
+            "description": "A library for generate fake items",
+            "time": "2017-02-05T08:17:21+00:00"
         },
         {
             "name": "laravel/framework",

@@ -13,7 +13,7 @@ class Purchase extends Model
     }
 
     function member(){
-        return $this->belongsTo(Member:class);
+        return $this->belongsTo(Member::class);
     }
 
     public function mediated_by()

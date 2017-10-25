@@ -18,7 +18,7 @@ class CreateMembersTable extends Migration
             $table->string('name');
             $table->string('last_name');
             $table->string('password');
-            $table->integer('mobile')->unique();
+            $table->bigInteger('mobile')->unique();
             $table->date('birth-date')->nullable();
             $table->integer('score')->default(0);
             $table->boolean('instelled')->delault(0);
