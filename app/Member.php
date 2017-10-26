@@ -3,8 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Purchase;
-use App\Cheque;
+use Illuminate\Support\Facades\Hash;
 
 class Member extends Model
 {
@@ -42,4 +41,32 @@ class Member extends Model
         return $members->pluck('id')->search($id);
     }
 
+    public static function findMemberByUserName($username)
+    {
+        return static::where('mobile', $username)
+             ->first(['id','password','name','last_name']);
+    }
+
+    public static function verifyPassword($password, $memberPassword)
+    {
+        if(Hash::check($password,$memberPassword) ) {
+            return true;
+        }
+        return false;
+    }
+
+    public static function generateJSONResponse($password, $member)
+    {
+        $isUser = ($member && static::verifyPassword($password, $member->password))
+         ? true : false;
+
+        return response()->json([
+            "result" => ($isUser) ? 1 : 0 ,
+            "info" => [
+                "name" => ($isUser) ? $member->name : '' ,
+                "family" => ($isUser) ? $member->last_name : '',
+                "grade" => ($isUser) ? static::grade($member->id) : 0
+            ]
+        ]);
+    }
 }
