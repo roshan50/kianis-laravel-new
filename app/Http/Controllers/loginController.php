@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Member;
+use Illuminate\Support\Facades\Hash;
 
 class loginController extends Controller
 {
@@ -14,21 +15,29 @@ class loginController extends Controller
      */
     public function index(Request $request)
     {
-        $member = Member::where('mobile', $request->username)
-            ->where('password', $request->password)->get();
+        $member = Member::where('mobile', $request->username)->get(['id','password','name','last_name']);
+        $isMemberEmpty = $member->isEmpty() ? 0 : 1;
 
-        $grade = Member::grade($member->first()->id);
+        $name = $last_name = '';
+        $logged = $grade = 0;
 
-        $logged = $member->isEmpty() ? 0 : 1;
-//
+        if($isMemberEmpty == 1) {
+            if(Hash::check($request->password,$member->first()->password) ) {
+                $grade = Member::grade($member->first()->id);
+                $name = $member->first()->name;
+                $last_name = $member->first()->last_name;
+                $logged = 1;
+            }
+        }
         return response()->json([
             "result" => $logged,
             "info" => [
-                "name" => $member->first()->name,
-                "family" => $member->first()->last_name,
+                "name" => $name,
+                "family" => $last_name,
                 "grade" => $grade
             ]
         ]);
+
     }
 
     /**
