@@ -12,9 +12,19 @@ class Member extends Model
          return $this->hasMany(Purchase::class);
     }
 
+    public function get_cashes()
+    {
+        return $this->purchases()->pluck('cash')->toArray();
+    }
+
     public function cheques()
     {
          return $this->hasManyThrough(Cheque::class, Purchase::class);
+    }
+
+    public function purchases_with_cheques()
+    {
+        return $this->hasMany(Purchase::class)->with('cheques');
     }
 
     // select users who mediated this user by selecting the mediotor_id on the
@@ -68,5 +78,17 @@ class Member extends Model
                 "grade" => ($isUser) ? static::grade($member->id) : 0
             ]
         ]);
+    }
+
+    public static function get_mediating_cashes($mediator_id)
+    {
+        return Purchase::where('mediator_id', $mediator_id)
+            ->pluck('cash');
+    }
+
+    public static function get_mediating_cheques($mediator_id){
+        $purchases_ids = Purchase::where('mediator_id', $mediator_id)
+            ->pluck('id');
+        return Cheque::whereIn('purchase_id',$purchases_ids)->pluck('amount');
     }
 }
