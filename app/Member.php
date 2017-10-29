@@ -8,16 +8,14 @@ use Illuminate\Support\Facades\Hash;
 
 class Member extends Model
 {
+    // properties
     public static $Score;
+
+    // methods
+
     public function purchases()
     {
          return $this->hasMany(Purchase::class);
-    }
-
-    public function get_cashes($id)
-    {
-        return Purchase::select('cash')->where('user_id',$id)->get();
-//        return $this->purchases()->pluck('cash')->toArray();
     }
 
     public function cheques()
@@ -29,18 +27,14 @@ class Member extends Model
     // purchase table and fetch the mediator_id on the user to pull the out.
     public function mediated_by()
     {
-//        return $this->hasManyThrough(Member::class,Purchase::class,'member_id','id','member_id','mediator_id');
         $ids= array_unique($this->purchases()->pluck('mediator_id')->toArray());
-
         return static::whereIn('id', $ids)->get();
     }
 
     // select all users which this user is mediating. by the purchase table.
     public function mediating()
     {
-//        return $this->hasManyThrough(Member::class,Purchase::class,'member_id','id','member_id','mediator_id');
         $user_ids = Purchase::findMediatingIDs($this->id);
-
         return static::whereIn('id', $user_ids)->get();
     }
 
@@ -63,7 +57,7 @@ class Member extends Model
         return false;
     }
 
-    public static function generateJSONResponse($password, $member)
+    public static function loginJSONResponse($password, $member)
     {
         $isUser = ($member && static::verifyPassword($password, $member->password))
          ? true : false;
@@ -78,6 +72,28 @@ class Member extends Model
         ]);
     }
 
+
+
+
+
+
+
+
+
+    // need to refactor this
+
+
+
+
+
+
+
+
+    public function get_cashes($id)
+    {
+        return Purchase::select('cash')->where('user_id',$id)->get();
+//        return $this->purchases()->pluck('cash')->toArray();
+    }
     public static function get_mediating_cashes($mediator_id)
     {
         return Purchase::where('mediator_id', $mediator_id)

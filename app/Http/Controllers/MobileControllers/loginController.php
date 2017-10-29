@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\MobileControllers;
 
 use App\Member;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class loginController extends Controller
 {
@@ -15,7 +16,7 @@ class loginController extends Controller
     public function index(Request $request)
     {
         $member = Member::findMemberByUserName($request->username);
-        return Member::generateJSONResponse($request->password, $member);
+        return Member::loginJSONResponse($request->password, $member);
     }
 
     /**
@@ -83,4 +84,5 @@ class loginController extends Controller
     {
         //
     }
+
 }

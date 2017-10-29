@@ -112,7 +112,19 @@ class MemberController extends Controller
             ->restore();
     }
 
+    public static function loginJSONResponse($password, $member)
+    {
+        $isUser = ($member && static::verifyPassword($password, $member->password))
+         ? true : false;
 
-
+        return response()->json([
+            "result" => ($isUser) ? 1 : 0 ,
+            "info" => [
+                "name" => ($isUser) ? $member->name : '' ,
+                "family" => ($isUser) ? $member->last_name : '',
+                "grade" => ($isUser) ? static::grade($member->id) : 0
+            ]
+        ]);
+    }
 
 }
