@@ -1,11 +1,7 @@
 <?php
+
 namespace App\Repository;
-/**
- * Created by PhpStorm.
- * User: Lemon-PC
- * Date: 10/28/2017
- * Time: 9:17 AM
- */
+
 use App\Member;
 
 class Score
@@ -14,42 +10,44 @@ class Score
     private static $VALID_CHEQUE_SCORE = 2 ;
     private static $CASH_SCORE = 5;
 
-    private $user_id;
+    public $total;
     private $cash;
     private $cheque;
-    private $cheque_expired;
+    private $user_id;
     private $cheque_passed;
-    public $total;
+    private $cheque_expired;
 
     function __construct($user_id,$cash,$cheque,$cheque_expired,$cheque_passed)
     {
-        $this->user_id  = $user_id;
-        $this->cash     = $cash;
-        $this->cheque   = $cheque;
-        $this->cheque_expired = $cheque_expired;
-        $this->cheque_passed  = $cheque_passed;
-        $this->total = $this->calc_score();
+        $this->cash             = $cash;
+        $this->total            = $this->score();
+        $this->cheque           = $cheque;
+        $this->user_id          = $user_id;
+        $this->cheque_passed    = $cheque_passed;
+        $this->cheque_expired   = $cheque_expired;
     }
 
-    public function calc_score()
+    private function score()
     {
-        return static::calc_cash_score($this->cash) +
-               static::calc_cheque_score($this->cheque,$this->cheque_expired,$this->cheque_passed)+
-               static::calc_Mediating_score($this->user_id);
+        return $this->cash_score($this->cash) +
+               $this->mediating_score($this->user_id)+
+               $this->cheque_score(
+                $this->cheque,$this->cheque_expired,$this->cheque_passed
+            );
     }
 
-    public static function calc_Mediating_score($user_id)
+    private function mediating_score($user_id)
     {
         $score = 0;
 
-        $cashes  = Member::get_mediating_cashes($user_id);
+        $cashes  = Member::mediating_cashes($user_id);
         for($i = 0; $i < count($cashes); $i++){
-            $score +=  static::calc_cash_score((int)$cashes[$i]);
+            $score +=  $this->cash_score((int)$cashes[$i]);
         }
 
-        $cheques = Member::get_mediating_cheques($user_id);
+        $cheques = Member::mediating_cheques($user_id);
         for($i = 0; $i < count($cheques); $i++){
-            $score +=  static::calc_cash_score((int)$cheques[$i]);
+            $score += $this->cash_score((int)$cheques[$i]);
         }
 
         return $score;
@@ -59,7 +57,7 @@ class Score
      * @param $buy_cash
      * @return mixed
      */
-    public static function calc_cash_score($cash)
+    private function cash_score($cash)
     {
         $score = floor($cash / self::UNIT_OF_PAYMENT) * self::CASH_SCORE;
         return $score;
@@ -69,18 +67,22 @@ class Score
      * @param $cheques
      * @return mixed
      */
-    function calc_cheque_score($cheques,$cheques_expired,$cheques_passed)
+    private function cheque_score($cheques,$cheques_expired,$cheques_passed)
     {
         $score = 0;
         for($i=0; $i<count($cheques); $i++){
-            $expired = if_cheque_expired($cheques_expired[$i]);
-            $score += ($cheques_passed[$i] === 'f' && !$expired) ? floor($cheques[$i] / self::UNIT_OF_PAYMENT) * self::VALID_CHEQUE_SCORE : 0;
+            $expired = $this->cheque_expired($cheques_expired[$i]);
+            $score += ($cheques_passed[$i] === 'f' && !$expired)
+             ?
+             floor($cheques[$i] / self::UNIT_OF_PAYMENT) * self::VALID_CHEQUE_SCORE
+             :
+             0;
         }
 
         return $score;
     }
 
-    function if_cheque_expired($d1){
+    private function cheque_expired($d1){
         $d1 = explode("/", $d1);
         $d2 = explode("/", self::FESTIVAL_END_DATE);
 

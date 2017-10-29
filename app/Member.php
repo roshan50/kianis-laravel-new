@@ -72,35 +72,23 @@ class Member extends Model
         ]);
     }
 
+    public static function score(Request $request){
+        $score = new \App\Repository\Score($this->id,$request->cash,$request->cheque,$request->cheque_expired,$request->cheque_passed);
+        return $score->total;
+    }
 
-
-
-
-
-
-
-
-    // need to refactor this
-
-
-
-
-
-
-
-
-    public function get_cashes($id)
+    public function cashes($id)
     {
         return Purchase::select('cash')->where('user_id',$id)->get();
-//        return $this->purchases()->pluck('cash')->toArray();
     }
-    public static function get_mediating_cashes($mediator_id)
+
+    public static function mediating_cashes($mediator_id)
     {
         return Purchase::where('mediator_id', $mediator_id)
             ->pluck('cash');
     }
 
-    public static function get_mediating_cheques($mediator_id){
+    public static function mediating_cheques($mediator_id){
         $purchases_ids = Purchase::where('mediator_id', $mediator_id)
             ->pluck('id');
         return Cheque::whereIn('purchase_id',$purchases_ids)->pluck('amount');
@@ -110,19 +98,13 @@ class Member extends Model
     {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        $codeAlphabet .= "abcdefghijklmnopqrstuvwxyz";
+        // $codeAlphabet .= "abcdefghijklmnopqrstuvwxyz";
         $codeAlphabet .= "0123456789";
-        $max = strlen($codeAlphabet); // edited
+        $max = strlen($codeAlphabet);
 
-        for ($i=0; $i < 6; $i++) {
+        for ($i=0; $i < 4; $i++) {
             $token .= $codeAlphabet[rand(0, $max-1)];
         }
-
         return $token;
-    }
-
-    public static function score(Request $request){
-        $score = new \App\Repository\Score($this->id,$request->cash,$request->cheque,$request->cheque_expired,$request->cheque_passed);
-        return $score->total;
     }
 }
