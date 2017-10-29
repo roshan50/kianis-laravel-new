@@ -15,7 +15,7 @@ class MemberController extends Controller
     public function index()
     {
 //        return Member::with(['purchases','cheques'])->get();
-        return Member::with('purchases_with_cheques')->get();
+        return Member::with('purchases.cheques')->get();
     }
 
     /**
@@ -40,9 +40,10 @@ class MemberController extends Controller
         $member->name       = $request->name;
         $member->last_name  = $request->last_name;
         $member->mobile     = $request->mobile;
-        $member->password   = bcrypt(generate_password());
+        $member->password   = bcrypt(Member::generate_password());
         $member->birth_date = $request->birth_date;
 //        $member->score      = \App\Repository\Score::calc_Mediating_score(3);
+        $member->score      = Member::score($request);
 
         $member->save();
     }
@@ -55,7 +56,7 @@ class MemberController extends Controller
      */
     public function show($id)
     {
-        return Member::with('purchases_with_cheques')
+        return Member::with('purchases.cheques')
                         ->where('id', $id)->get();
     }
 
@@ -67,7 +68,7 @@ class MemberController extends Controller
      */
     public function edit($id)
     {
-        return Member::with('purchases_with_cheques')
+        return Member::with('purchases.cheques')
             ->where('id', $id)->get();
     }
 
@@ -84,7 +85,7 @@ class MemberController extends Controller
         $member->name = $request->name;
         $member->last_name = $request->last_name;
         $member->mobile = $request->mobile;
-        $member->password = bcrypt(generate_password());
+        $member->password = bcrypt(Member::generate_password());
         $member->birth_date = $request->birth_date;
         $member->score = 0;
         $member->installed = 0;
@@ -111,20 +112,7 @@ class MemberController extends Controller
             ->restore();
     }
 
-    function generate_password()
-    {
-        $token = "";
-        $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        $codeAlphabet .= "abcdefghijklmnopqrstuvwxyz";
-        $codeAlphabet .= "0123456789";
-        $max = $codeAlphabet.length; // edited
 
-        for ($i=0; $i < 6; $i++) {
-            $token .= $codeAlphabet[rand(0, $max-1)];
-        }
-
-        return $token;
-    }
 
 
 }

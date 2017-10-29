@@ -3,28 +3,26 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class Member extends Model
 {
+    public static $Score;
     public function purchases()
     {
          return $this->hasMany(Purchase::class);
     }
 
-    public function get_cashes()
+    public function get_cashes($id)
     {
-        return $this->purchases()->pluck('cash')->toArray();
+        return Purchase::select('cash')->where('user_id',$id)->get();
+//        return $this->purchases()->pluck('cash')->toArray();
     }
 
     public function cheques()
     {
          return $this->hasManyThrough(Cheque::class, Purchase::class);
-    }
-
-    public function purchases_with_cheques()
-    {
-        return $this->hasMany(Purchase::class)->with('cheques');
     }
 
     // select users who mediated this user by selecting the mediotor_id on the
@@ -90,5 +88,25 @@ class Member extends Model
         $purchases_ids = Purchase::where('mediator_id', $mediator_id)
             ->pluck('id');
         return Cheque::whereIn('purchase_id',$purchases_ids)->pluck('amount');
+    }
+
+    public static function generate_password()
+    {
+        $token = "";
+        $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        $codeAlphabet .= "abcdefghijklmnopqrstuvwxyz";
+        $codeAlphabet .= "0123456789";
+        $max = strlen($codeAlphabet); // edited
+
+        for ($i=0; $i < 6; $i++) {
+            $token .= $codeAlphabet[rand(0, $max-1)];
+        }
+
+        return $token;
+    }
+
+    public static function score(Request $request){
+        $score = new \App\Repository\Score($this->id,$request->cash,$request->cheque,$request->cheque_expired,$request->cheque_passed);
+        return $score->total;
     }
 }

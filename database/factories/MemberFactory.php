@@ -12,6 +12,6 @@ $factory->define(App\Member::class, function (Faker $faker) {
         'mobile'    => persian_faker::mobile(),
         'birth-date'=> rand(1350,1390).'-'.rand(1,12).'-'.rand(1,30),
         'score'     => rand(0,1000),
-        'instelled' => rand(0,1)
+        'installed' => rand(0,1)
     ];
 });
