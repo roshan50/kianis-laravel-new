@@ -34,7 +34,7 @@ class Member extends Model
     // select all users which this user is mediating. by the purchase table.
     public function mediating()
     {
-        $user_ids = Purchase::findMediatingIDs($this->id);
+        $user_ids = Purchase::MediatingIDs($this->id);
         return static::whereIn('id', $user_ids)->get();
     }
 
@@ -65,33 +65,11 @@ class Member extends Model
         return response()->json([
             "result" => ($isUser) ? 1 : 0 ,
             "info" => [
-                "name" => ($isUser) ? $member->name : '' ,
+                "name"   => ($isUser) ? $member->name : '' ,
                 "family" => ($isUser) ? $member->last_name : '',
-                "grade" => ($isUser) ? static::grade($member->id) : 0
+                "grade"  => ($isUser) ? static::grade($member->id) : 0
             ]
         ]);
-    }
-
-    public static function score(Request $request){
-        $score = new \App\Repository\Score($this->id,$request->cash,$request->cheque,$request->cheque_expired,$request->cheque_passed);
-        return $score->total;
-    }
-
-    public function cashes($id)
-    {
-        return Purchase::select('cash')->where('user_id',$id)->get();
-    }
-
-    public static function mediating_cashes($mediator_id)
-    {
-        return Purchase::where('mediator_id', $mediator_id)
-            ->pluck('cash');
-    }
-
-    public static function mediating_cheques($mediator_id){
-        $purchases_ids = Purchase::where('mediator_id', $mediator_id)
-            ->pluck('id');
-        return Cheque::whereIn('purchase_id',$purchases_ids)->pluck('amount');
     }
 
     public static function generate_password()

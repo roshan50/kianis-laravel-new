@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Member;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\App;
+use App\Repository\Score;
 class MemberController extends Controller
 {
     /**
@@ -36,14 +37,15 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
+        $score = new Score('',$request);
+
         $member = new Member;
         $member->name       = $request->name;
         $member->last_name  = $request->last_name;
         $member->mobile     = $request->mobile;
         $member->password   = bcrypt(Member::generate_password());
         $member->birth_date = $request->birth_date;
-//        $member->score      = \App\Repository\Score::calc_Mediating_score(3);
-        $member->score      = Member::score($request);
+        $member->score      = $score->total;
 
         $member->save();
     }
@@ -81,13 +83,14 @@ class MemberController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $member = new Member;
+        $score = new Score($id,$request);
+        $member = Member::find($id);
         $member->name = $request->name;
         $member->last_name = $request->last_name;
         $member->mobile = $request->mobile;
         $member->password = bcrypt(Member::generate_password());
         $member->birth_date = $request->birth_date;
-        $member->score = 0;
+        $member->score = $score->total;
         $member->installed = 0;
 
         $member->save();
@@ -112,19 +115,5 @@ class MemberController extends Controller
             ->restore();
     }
 
-    public static function loginJSONResponse($password, $member)
-    {
-        $isUser = ($member && static::verifyPassword($password, $member->password))
-         ? true : false;
-
-        return response()->json([
-            "result" => ($isUser) ? 1 : 0 ,
-            "info" => [
-                "name" => ($isUser) ? $member->name : '' ,
-                "family" => ($isUser) ? $member->last_name : '',
-                "grade" => ($isUser) ? static::grade($member->id) : 0
-            ]
-        ]);
-    }
 
 }

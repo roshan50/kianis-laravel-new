@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Cheque;
 use App\Member;
+use App\Purchase;
 
 class Score
 {
@@ -12,42 +14,44 @@ class Score
 
     public $total;
     private $cash;
-    private $cheque;
+    private $cheques;
     private $user_id;
-    private $cheque_passed;
-    private $cheque_expired;
+    private $isRejected;
+    private $purchase_ids;
+    private $cheques_expired;
 
-    function __construct($user_id,$cash,$cheque,$cheque_expired,$cheque_passed)
+    function __construct($user_id,$request)
     {
-        $this->cash             = $cash;
-        $this->total            = $this->score();
-        $this->cheque           = $cheque;
         $this->user_id          = $user_id;
-        $this->cheque_passed    = $cheque_passed;
-        $this->cheque_expired   = $cheque_expired;
+        $this->cash             = $request->cash;
+        $this->cheques           = $request->cheques;
+        $this->isRejected       = $request->isRejected;
+        $this->cheques_expired   = $request->cheques_expired;
+        $this->purchase_ids     = $request->purchase_ids;
+        $this->total            = $this->score();
     }
 
     private function score()
     {
-        return $this->cash_score($this->cash) +
-               $this->mediating_score($this->user_id)+
-               $this->cheque_score(
-                $this->cheque,$this->cheque_expired,$this->cheque_passed
-            );
+        return $this->cash_score() +
+               $this->cheque_score()+
+               $this->mediating_score();
     }
 
-    private function mediating_score($user_id)
+    private function mediating_score()
     {
-        $score = 0;
+        $score = 0;//dd($this->purchase_ids);
+        $purchase_ids = explode(',',$this->purchase_ids);
+        foreach ($purchase_ids as $purchase_id){
+            $cash = Purchase::find($purchase_id)->cash;
+            $score += $this->calc_cash_score($cash);
 
-        $cashes  = Member::mediating_cashes($user_id);
-        for($i = 0; $i < count($cashes); $i++){
-            $score +=  $this->cash_score((int)$cashes[$i]);
-        }
-
-        $cheques = Member::mediating_cheques($user_id);
-        for($i = 0; $i < count($cheques); $i++){
-            $score += $this->cash_score((int)$cheques[$i]);
+            $cheques = Purchase::find($purchase_id)->cheques->toArray();
+            for ($i = 0; $i < count($cheques); $i++) {
+                $expired = false;//$this->cheque_expired($cheques[$i]['expire_date']);
+                if($cheques[$i]['isRejected'] === 0 && !$expired)
+                    $score += $this->calc_cheque_score($cheques[$i]['amount']);
+            }
         }
 
         return $score;
@@ -57,34 +61,65 @@ class Score
      * @param $buy_cash
      * @return mixed
      */
-    private function cash_score($cash)
+    private function cash_score()
     {
-        $score = floor($cash / self::UNIT_OF_PAYMENT) * self::CASH_SCORE;
+        $score = $this->calc_cash_score($this->cash);
+
+        if($this->user_id){
+            foreach (Purchase::cashes($this->user_id)->toArray() as $cash){
+                $score += $this->calc_cash_score($cash['cash']);
+            }
+        }
+
         return $score;
+    }
+
+    private function calc_cash_score($cash){
+        return floor($cash / self::$UNIT_OF_PAYMENT) * self::$CASH_SCORE;
     }
 
     /**
      * @param $cheques
      * @return mixed
      */
-    private function cheque_score($cheques,$cheques_expired,$cheques_passed)
+    private function cheque_score()
     {
         $score = 0;
-        for($i=0; $i<count($cheques); $i++){
-            $expired = $this->cheque_expired($cheques_expired[$i]);
-            $score += ($cheques_passed[$i] === 'f' && !$expired)
-             ?
-             floor($cheques[$i] / self::UNIT_OF_PAYMENT) * self::VALID_CHEQUE_SCORE
-             :
-             0;
-        }
+        $cheques = explode(',',$this->cheques);
+        $isRejected = explode(',',$this->isRejected);
+        $cheques_expired = explode(',',$this->cheques_expired);
 
+        for ($i = 0; $i < count($cheques); $i++) {
+            $expired = $this->cheque_expired($cheques_expired[$i]);
+            if ($isRejected[$i] == 0 && !$expired) {
+                $score += $this->calc_cheque_score($cheques[$i]);
+            }
+        }
+        if($this->user_id) {
+            $purchase_ids = Purchase::where('member_id',$this->user_id)->pluck
+            ('id');
+//            dd($purchase_ids);
+            $old_cheques = Cheque::whereIn('purchase_id', $purchase_ids)->get
+            ()->toArray();
+//            dd($old_cheques);
+            foreach ($old_cheques as $item) {
+                $expired = false;//$this->cheque_expired($item['expire_date']);
+                if($item['isRejected'] === 0 && !$expired)
+                $score += $this->calc_cheque_score($item['amount']);
+            }
+        }
+//dd($score);
         return $score;
+    }
+
+    private function calc_cheque_score($cheque){
+        return floor($cheque /self::$UNIT_OF_PAYMENT)
+            * self::$VALID_CHEQUE_SCORE;
     }
 
     private function cheque_expired($d1){
         $d1 = explode("/", $d1);
-        $d2 = explode("/", self::FESTIVAL_END_DATE);
+        $d2 = explode("/", \App\Repository\Info::$FESTIVAL_END_DATE);
 
         $y = $d1[0] - $d2[0];
         $m = $d1[1] - $d2[1];
@@ -105,5 +140,6 @@ class Score
         }
         return false;
     }
+
 
 }
