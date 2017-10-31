@@ -48,6 +48,8 @@ class MemberController extends Controller
         $member->score      = $score->total;
 
         $member->save();
+        dd($member->id);
+        PurchaseController::store($member->id);
     }
 
     /**

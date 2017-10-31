@@ -19,7 +19,7 @@ class CreatePurchasesTable extends Migration
             $table->integer('mediator_id');
             $table->enum('type', ['cheque', 'cash', 'cheque_cash'])->nullable();
             $table->integer('cash')->nullable();
-            $table->integer('which_purchase')->nullable();
+//            $table->integer('which_purchase')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -27,15 +27,21 @@ class Member extends Model
     // purchase table and fetch the mediator_id on the user to pull the out.
     public function mediated_by()
     {
-        $ids= array_unique($this->purchases()->pluck('mediator_id')->toArray());
-        return static::whereIn('id', $ids)->get();
+        return $this->hasManyThrough(Member::class, Purchase::class,
+                                'member_id','id',
+                                'id','mediator_id');
+//        $ids= array_unique($this->purchases()->pluck('mediator_id')->toArray());
+//        return static::whereIn('id', $ids)->get();
     }
 
     // select all users which this user is mediating. by the purchase table.
     public function mediating()
     {
-        $user_ids = Purchase::MediatingIDs($this->id);
-        return static::whereIn('id', $user_ids)->get();
+        return $this->hasManyThrough(Member::class, Purchase::class,
+                                        'mediator_id','id',
+                                        'id','member_id');
+//        $user_ids = Purchase::MediatingIDs($this->id);
+//        return static::whereIn('id', $user_ids)->get();
     }
 
     public static function grade($id){
@@ -51,7 +57,9 @@ class Member extends Model
 
     public static function verifyPassword($password, $memberPassword)
     {
-        if(Hash::check($password,$memberPassword) ) {
+        if($memberPassword == $password ) {
+//            if (Hash::check('secret', $hashedPassword)){}
+//        if(Hash::check($password,$memberPassword) ) {
             return true;
         }
         return false;
